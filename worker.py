@@ -1,38 +1,42 @@
-from openai import OpenAI
+import os
 import requests
+from openai import OpenAI
+from dotenv import load_dotenv
 
-openai_client = OpenAI()
+# Load variables from .env file
+load_dotenv()
 
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 def speech_to_text(audio_binary):
+    # Get values from .env
+    base_url = os.getenv("WATSON_STT_URL")
+    api_key = os.getenv("WATSON_STT_API_KEY")
+    
+    if not base_url or not api_key:
+        return "Error: IBM STT Credentials missing in .env"
 
-    # Set up Watson Speech-to-Text HTTP Api url
-    base_url = 'https://sn-watson-stt.labs.skills.network'
-    api_url = base_url+'/speech-to-text/api/v1/recognize'
+    api_url = f"{base_url}/v1/recognize"
+    params = {'model': 'en-US_Multimedia'}
 
-    # Set up parameters for our HTTP request
-    params = {
-        'model': 'en-US_Multimedia',
-    }
+    # Use 'auth' for IBM's standard authentication
+    response = requests.post(
+        api_url, 
+        params=params, 
+        data=audio_binary, 
+        auth=('apikey', api_key)
+    ).json()
 
-    # Set up the body of our HTTP request
-    body = audio_binary
-
-    # Send a HTTP Post request
-    response = requests.post(api_url, params=params, data=audio_binary).json()
-
-    # Parse the response to get our transcribed text
-    text = 'null'
-    while bool(response.get('results')):
-        print('speech to text response:', response)
-        text = response.get('results').pop().get('alternatives').pop().get('transcript')
-        print('recognised text: ', text)
+    # FIX: Added [0] indexing for results and alternatives
+    if 'results' in response and len(response['results']) > 0:
+        text = response['results'][0]['alternatives'][0]['transcript']
+        print('Recognized text:', text)
         return text
+    return None
 
 def openai_process_message(user_message):
-    # Set the prompt for OpenAI Api
-    prompt = "Act like a personal assistant. You can respond to questions, translate sentences, summarize news, and give recommendations. Keep responses concise - 2 to 3 sentences maximum."
-    # Call the OpenAI Api to process our prompt
+    prompt = "Act like a personal assistant. Keep responses concise - 2 to 3 sentences maximum."
+    
     openai_response = openai_client.chat.completions.create(
         model="gpt-5-nano", 
         messages=[
@@ -41,32 +45,32 @@ def openai_process_message(user_message):
         ],
         max_completion_tokens=1000
     )
-    print("openai response:", openai_response)
-    # Parse the response to get the response message for our prompt
-    response_text = openai_response.choices[0].message.content
-    return response_text
+    # FIX: Added [0] indexing for choices
+    return openai_response.choices[0].message.content
 
 def text_to_speech(text, voice=""):
-    # Set up Watson Text-to-Speech HTTP Api url
-    base_url = 'https://sn-watson-tts.labs.skills.network'
-    api_url = base_url + '/text-to-speech/api/v1/synthesize?output=output_text.wav'
+    # Get values from .env
+    base_url = os.getenv("WATSON_TTS_URL")
+    api_key = os.getenv("WATSON_TTS_API_KEY")
 
-    # Adding voice parameter in api_url if the user has selected a preferred voice
-    if voice != "" and voice != "default":
-        api_url += "&voice=" + voice
+    if not base_url or not api_key:
+        print("Error: IBM TTS Credentials missing")
+        return None
 
-    # Set the headers for our HTTP request
+    api_url = f"{base_url}/v1/synthesize"
+    if voice and voice != "default":
+        api_url += f"?voice={voice}"
+
     headers = {
         'Accept': 'audio/wav',
         'Content-Type': 'application/json',
     }
+    json_data = {'text': text}
 
-    # Set the body of our HTTP request
-    json_data = {
-        'text': text,
-    }
-
-    # Send a HTTP Post request to Watson Text-to-Speech Service
-    response = requests.post(api_url, headers=headers, json=json_data)
-    print('text to speech response:', response)
+    response = requests.post(
+        api_url, 
+        headers=headers, 
+        json=json_data, 
+        auth=('apikey', api_key)
+    )
     return response.content

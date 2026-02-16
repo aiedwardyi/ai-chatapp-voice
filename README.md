@@ -1,11 +1,6 @@
 # 🎙️ AI Voice Assistant
 ### Powered by OpenAI GPT-5 Nano & IBM Watson
 
-![Python](https://img.shields.io)
-![Docker](https://img.shields.io)
-![License](https://img.shields.io)
-![OpenAI](https://img.shields.io)
-
 A professional-grade, containerized voice assistant that bridges **OpenAI's GPT-5 Nano** reasoning with **IBM Watson's** enterprise-grade Speech-to-Text (STT) and Text-to-Speech (TTS) engines. 
 
 ---
@@ -42,9 +37,13 @@ A professional-grade, containerized voice assistant that bridges **OpenAI's GPT-
 Create a `.env` file in the project root to securely store your secrets:
 
 OPENAI_API_KEY=your_openai_key
+
 WATSON_STT_API_KEY=your_ibm_stt_key
+
 WATSON_STT_URL=your_ibm_stt_url
+
 WATSON_TTS_API_KEY=your_ibm_tts_key
+
 WATSON_TTS_URL=your_ibm_tts_url
 
 ### 3. Build & Deploy
