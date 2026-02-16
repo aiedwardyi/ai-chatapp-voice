@@ -1,25 +1,16 @@
 FROM python:3.10
 
 WORKDIR /app
+
+# Copy requirements first to leverage Docker caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of your application code
 COPY . .
 
-RUN pip install -r requirements.txt
+# Expose the port the app runs on
+EXPOSE 8000
 
-# -----------------------------------------------------------------
-# Copy certificates to make use of free open ai usage within the lab
-# REMOVE THIS WHEN DEPLOYING TO CODE ENGINE
-
-# Copy the self-signed root CA certificate into the container
-COPY certs/rootCA.crt /usr/local/share/ca-certificates/rootCA.crt
-
-# Update the CA trust store to trust the self-signed certificate
-RUN chmod 644 /usr/local/share/ca-certificates/rootCA.crt && \
-  update-ca-certificates
-
-# Set the environment variable OPENAI_API_KEY to empty string
-ENV OPENAI_API_KEY=skills-network
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-# -----------------------------------------------------------------
-
+# Run the server
 CMD ["python", "-u", "server.py"]
