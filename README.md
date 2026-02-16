@@ -36,24 +36,26 @@ A professional-grade, containerized voice assistant that bridges **OpenAI's GPT-
 ### 2. Configuration
 Create a `.env` file in the project root to securely store your secrets:
 
+```env
 OPENAI_API_KEY=your_openai_key
-
 WATSON_STT_API_KEY=your_ibm_stt_key
-
 WATSON_STT_URL=your_ibm_stt_url
-
 WATSON_TTS_API_KEY=your_ibm_tts_key
-
 WATSON_TTS_URL=your_ibm_tts_url
+```
 
 ### 3. Build & Deploy
 Build the Docker image locally:
-docker build . -t voice-assistant-ai
 
+```bash
+docker build . -t voice-assistant-ai
+```
 
 Launch the container with your environment variables:
-docker run -p 8000:8000 --env-file .env voice-assistant-ai
 
+```bash
+docker run -p 8000:8000 --env-file .env voice-assistant-ai
+```
 
 Access the interface at: http://localhost:8000
 
